@@ -102,6 +102,12 @@ func WithBaseURL(rawURL string) Option {
 		if parsed.Host == "" {
 			return errors.New("strombauer: base URL has no host")
 		}
+		if parsed.User != nil {
+			return errors.New("strombauer: base URL must not contain user information")
+		}
+		if parsed.RawQuery != "" || parsed.Fragment != "" {
+			return errors.New("strombauer: base URL must not contain a query or fragment")
+		}
 		c.baseURL = strings.TrimSpace(rawURL)
 		return nil
 	}

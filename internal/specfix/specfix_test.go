@@ -105,6 +105,56 @@ func TestNormalizeHoistsResponseSchemas(t *testing.T) {
 	}
 }
 
+func TestNormalizeCompletesCompactCartLineItems(t *testing.T) {
+	out, err := Normalize(loadSpec(t))
+	if err != nil {
+		t.Fatalf("Normalize: %v", err)
+	}
+	doc := decode(t, out)
+
+	schemas := mustMap(t, mustMap(t, doc, "components"), "schemas")
+	lineItem := mustMap(t, schemas, "CompactCartLineItem")
+	properties := mustMap(t, lineItem, "properties")
+	for _, name := range []string{
+		"id",
+		"productId",
+		"productNumber",
+		"name",
+		"image",
+		"measureUnit",
+		"quantity",
+		"price",
+		"listPrice",
+		"availableStock",
+		"stockForecast",
+	} {
+		if _, ok := properties[name]; !ok {
+			t.Errorf("CompactCartLineItem is missing property %q", name)
+		}
+	}
+
+	required, ok := lineItem["required"].([]any)
+	if !ok {
+		t.Fatalf("CompactCartLineItem required is %T, want array", lineItem["required"])
+	}
+	requiredNames := make(map[string]bool, len(required))
+	for _, name := range required {
+		requiredNames[name.(string)] = true
+	}
+	for _, name := range []string{"id", "productId", "productNumber", "name", "quantity"} {
+		if !requiredNames[name] {
+			t.Errorf("CompactCartLineItem does not require %q", name)
+		}
+	}
+
+	compactCart := mustMap(t, schemas, "CompactCart")
+	items := mustMap(t, mustMap(t, compactCart, "properties"), "items")
+	itemSchema := mustMap(t, items, "items")
+	if itemSchema["$ref"] != "#/components/schemas/CompactCartLineItem" {
+		t.Errorf("CompactCart items $ref = %v", itemSchema["$ref"])
+	}
+}
+
 func TestNormalizeRemovesCaseOnlyDuplicateProperties(t *testing.T) {
 	out, err := Normalize(loadSpec(t))
 	if err != nil {

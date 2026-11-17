@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/mheers/shop-strombauer-api-golang/api"
@@ -206,7 +207,27 @@ func (a *App) printCart(cart *api.CompactCart) error {
 	}
 
 	writer := tabwriter.NewWriter(a.opts.Out, 0, 4, 2, ' ', 0)
-	_, _ = fmt.Fprintf(writer, "Items:\t%d\n", len(cart.Items))
+	if len(cart.Items) == 0 {
+		_, _ = fmt.Fprintln(writer, "Cart is empty.")
+	} else {
+		_, _ = fmt.Fprintln(writer, "ID\tNUMBER\tNAME\tQTY\tUNIT\tTOTAL")
+		for _, item := range cart.Items {
+			unit, total := "-", "-"
+			if item.Price != nil {
+				unit = formatNumber(&item.Price.Unit)
+				total = formatNumber(&item.Price.Total)
+			}
+			_, _ = fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\t%s\n",
+				item.Id,
+				item.ProductNumber,
+				deref(item.Name),
+				formatQuantity(item),
+				unit,
+				total,
+			)
+		}
+		_, _ = fmt.Fprintf(writer, "\nItems:\t%d\n", len(cart.Items))
+	}
 	_, _ = fmt.Fprintf(writer, "Net:\t%s\n", formatAmount(cart.Totals.Net))
 	_, _ = fmt.Fprintf(writer, "Gross:\t%s\n", formatAmount(cart.Totals.Gross))
 	if cart.Totals.Savings != nil {
@@ -227,9 +248,29 @@ func (a *App) printCart(cart *api.CompactCart) error {
 	return nil
 }
 
+func formatQuantity(item api.CompactCartLineItem) string {
+	quantity := fmt.Sprintf("%d", item.Quantity)
+	if item.MeasureUnit == nil {
+		return quantity
+	}
+	for _, name := range []*string{item.MeasureUnit.Name, item.MeasureUnit.Label} {
+		if name != nil && strings.TrimSpace(*name) != "" {
+			return quantity + " " + strings.TrimSpace(*name)
+		}
+	}
+	return quantity
+}
+
+func formatNumber(amount *float32) string {
+	if amount == nil {
+		return "-"
+	}
+	return fmt.Sprintf("%.2f", *amount)
+}
+
 func formatAmount(amount *float32) string {
 	if amount == nil {
 		return "-"
 	}
-	return fmt.Sprintf("%.2f EUR", *amount)
+	return formatNumber(amount) + " EUR"
 }

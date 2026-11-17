@@ -60,7 +60,10 @@ func (e *APIError) Error() string {
 		status = fmt.Sprintf("%d", e.StatusCode)
 	}
 
-	message := fmt.Sprintf("strombauer: %s %s", status, first.Code)
+	message := fmt.Sprintf("strombauer: %s", status)
+	if first.Code != "" {
+		message += " " + first.Code
+	}
 	if first.Detail != "" {
 		message += ": " + first.Detail
 	}

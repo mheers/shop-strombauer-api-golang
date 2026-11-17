@@ -104,7 +104,7 @@ func TestLoginReadsCredentialsFromStdin(t *testing.T) {
 
 	configPath := writeConfig(t, &Config{BaseURL: server.URL, AccessKey: "test-key"})
 
-	_, _, err := execute(t, Options{
+	stdout, stderr, err := execute(t, Options{
 		ConfigPath: configPath,
 		In:         strings.NewReader("max@example.com\nsecret\n"),
 	}, "login")
@@ -113,6 +113,12 @@ func TestLoginReadsCredentialsFromStdin(t *testing.T) {
 	}
 	if loginBody["username"] != "max@example.com" || loginBody["password"] != "secret" {
 		t.Fatalf("login body = %#v", loginBody)
+	}
+	if strings.Contains(stdout, "E-mail:") || strings.Contains(stdout, "Password:") {
+		t.Errorf("prompts leaked to stdout:\n%s", stdout)
+	}
+	if !strings.Contains(stderr, "E-mail:") || !strings.Contains(stderr, "Password:") {
+		t.Errorf("prompts missing from stderr:\n%s", stderr)
 	}
 }
 
@@ -216,6 +222,26 @@ func TestCartAddUsesConfiguredBaseURL(t *testing.T) {
 	}
 	if len(body.Items) != 1 || body.Items[0].ProductId != "p1" || body.Items[0].Quantity != 2 {
 		t.Fatalf("body = %#v", body)
+	}
+}
+
+func TestCartShowPrintsLineItemIDs(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"items":[{"id":"line-1","productId":"p1","productNumber":"1001","name":"Battery","quantity":2,"price":{"unit":10,"total":20},"listPrice":null,"measureUnit":{"code":"STÜCK","name":"Stk.","quantityPerUnit":1},"availableStock":5,"stockForecast":null}],"selected":{},"available":{},"totals":{"net":20,"vat":[],"gross":20,"savings":null,"taxExemption":null},"notices":[]}`)
+	}))
+	defer server.Close()
+
+	configPath := writeConfig(t, &Config{BaseURL: server.URL, AccessKey: "test-key"})
+
+	stdout, _, err := execute(t, Options{ConfigPath: configPath}, "cart", "show")
+	if err != nil {
+		t.Fatalf("cart show: %v", err)
+	}
+	for _, part := range []string{"line-1", "1001", "Battery", "2 Stk.", "20.00"} {
+		if !strings.Contains(stdout, part) {
+			t.Errorf("cart output does not contain %q:\n%s", part, stdout)
+		}
 	}
 }
 

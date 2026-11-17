@@ -13,7 +13,7 @@ func (c *Client) Products(ctx context.Context, params *api.GetStoreApiProductSea
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)
@@ -28,7 +28,7 @@ func (c *Client) Product(ctx context.Context, productID string) (*api.ProductDet
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)
@@ -44,7 +44,7 @@ func (c *Client) Search(ctx context.Context, params *api.GetStoreApiSearchParams
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)
@@ -59,7 +59,7 @@ func (c *Client) Categories(ctx context.Context, params *api.GetStoreApiCategory
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)
@@ -74,7 +74,7 @@ func (c *Client) Countries(ctx context.Context) (*api.CountryListResponse, error
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)
@@ -89,7 +89,7 @@ func (c *Client) Manufacturers(ctx context.Context, params *api.GetStoreApiStrom
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)
@@ -104,7 +104,7 @@ func (c *Client) Manufacturer(ctx context.Context, manufacturerID string) (*api.
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)

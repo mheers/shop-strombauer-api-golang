@@ -58,6 +58,16 @@ func TestAPIErrorError(t *testing.T) {
 	}
 }
 
+func TestAPIErrorWithoutCodeHasNoDoubleSpace(t *testing.T) {
+	err := &APIError{
+		StatusCode: http.StatusBadRequest,
+		Errors:     []APIErrorEntry{{Status: "400", Detail: "Bitte prüfe die Eingabe."}},
+	}
+	if got := err.Error(); strings.Contains(got, "  ") {
+		t.Fatalf("Error() = %q, want no double space", got)
+	}
+}
+
 func TestAPIErrorHasCode(t *testing.T) {
 	err := &APIError{Errors: []APIErrorEntry{
 		{Code: "VIOLATION::IS_BLANK_ERROR", Source: &APIErrorSource{Pointer: "/street"}},

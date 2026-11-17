@@ -55,7 +55,7 @@ func (c *Client) Customer(ctx context.Context) (*api.AccountCustomerResponse, er
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)
@@ -76,7 +76,7 @@ func (c *Client) EmailCheck(ctx context.Context, email string) (*EmailCheckResul
 		return nil, wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
-		return nil, wrapRequestError(err)
+		return nil, err
 	}
 	if resp.JSON200 == nil {
 		return nil, unexpectedResponse(resp.StatusCode(), resp.Body)

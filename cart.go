@@ -11,6 +11,10 @@ import (
 // ErrEmptyCart is returned when AddToCart is called without items.
 var ErrEmptyCart = errors.New("strombauer: no cart items given")
 
+// ErrInvalidQuantity is returned when a cart quantity is less than 1. The
+// Store API requires a minimum quantity of 1 for every line item.
+var ErrInvalidQuantity = errors.New("strombauer: quantity must be at least 1")
+
 // ErrTermsNotAccepted is returned by PlaceOrder when termsAccepted is false.
 var ErrTermsNotAccepted = errors.New("strombauer: terms and conditions must be accepted")
 
@@ -31,6 +35,9 @@ func (c *Client) AddToCart(ctx context.Context, items ...api.CartProductLineItem
 	for i := range items {
 		if strings.TrimSpace(items[i].ProductId) == "" {
 			return nil, errors.New("strombauer: cart item has no product ID")
+		}
+		if items[i].Quantity != nil && *items[i].Quantity < 1 {
+			return nil, ErrInvalidQuantity
 		}
 	}
 
@@ -53,8 +60,12 @@ func (c *Client) AddProduct(ctx context.Context, productID string, quantity int)
 	})
 }
 
-// UpdateCartItem sets the quantity of an existing line item.
+// UpdateCartItem sets the quantity of an existing line item. The quantity must
+// be at least 1.
 func (c *Client) UpdateCartItem(ctx context.Context, lineItemID string, quantity int) (*api.CompactCart, error) {
+	if quantity < 1 {
+		return nil, ErrInvalidQuantity
+	}
 	resp, err := c.api.PatchStoreApiStrombauerCheckoutCartUpdateItemWithResponse(ctx, lineItemID, api.PatchStoreApiStrombauerCheckoutCartUpdateItemJSONRequestBody{
 		Quantity: quantity,
 	})
@@ -64,7 +75,8 @@ func (c *Client) UpdateCartItem(ctx context.Context, lineItemID string, quantity
 	return compactCartResult(resp.StatusCode(), resp.Body, resp.JSON200)
 }
 
-// RemoveCartItem removes a line item from the cart.
+// RemoveCartItem removes a line item from the cart. The returned cart is nil
+// when the shop answers without a body.
 func (c *Client) RemoveCartItem(ctx context.Context, lineItemID string) (*api.CompactCart, error) {
 	resp, err := c.api.DeleteStoreApiStrombauerCheckoutCartRemoveItemWithResponse(ctx, lineItemID)
 	if err != nil {
@@ -207,7 +219,7 @@ func (c *Client) PlaceOrder(ctx context.Context, termsAccepted bool) (string, er
 		TermsAccepted: api.PostStoreApiCheckoutCartOrderJSONBodyTermsAccepted(true),
 	})
 	if err != nil {
-		return "", err
+		return "", wrapRequestError(err)
 	}
 	if err := responseError(resp.StatusCode(), resp.Body); err != nil {
 		return "", err

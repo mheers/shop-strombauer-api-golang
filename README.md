@@ -296,7 +296,11 @@ var apiErr *strombauer.APIError
 if errors.As(err, &apiErr) {
 	fmt.Println(apiErr.StatusCode)
 	for _, entry := range apiErr.Errors {
-		fmt.Println(entry.Code, entry.Detail, entry.Source)
+		pointer := ""
+		if entry.Source != nil {
+			pointer = entry.Source.Pointer
+		}
+		fmt.Println(entry.Code, entry.Detail, pointer)
 	}
 }
 
@@ -336,6 +340,9 @@ strombauer orders get <orderId>
 strombauer logout
 ```
 
+`strombauer cart show` prints each line item with the ID that `cart update`
+and `cart remove` expect, its quantity, and its unit and total price.
+
 Configuration and overrides:
 
 | Setting | Flag | Environment | Config key |
@@ -361,8 +368,8 @@ make generate
 ```
 
 The command runs `internal/specfix` first. The published document contains a
-few constructs that are valid JSON Schema but not valid OpenAPI 3.0, and that
-`oapi-codegen` rejects. `specfix` fixes them deterministically:
+few constructs that are valid JSON Schema but not valid OpenAPI 3.0, and one
+incomplete schema. `specfix` fixes them deterministically:
 
 - `$ref` values that point below a component schema are hoisted into top-level
   components and rewritten.
@@ -370,6 +377,9 @@ few constructs that are valid JSON Schema but not valid OpenAPI 3.0, and that
 - Properties that differ only by letter case are reduced to one Go field.
 - Response schemas with inline enums are hoisted so their Go enum types are
   declared.
+- The cart line-item schema declares only `listPrice`. It is completed from the
+  documented response example and hoisted to `CompactCartLineItem`, so
+  `CompactCart.Items` exposes line-item IDs, quantities, prices and stock.
 
 The normalization is covered by tests in `internal/specfix`. To refresh from
 the live documentation, replace `spec/openapi.json` with the OpenAPI document
@@ -398,9 +408,9 @@ oapi-codegen.yaml    generator configuration
 ## Read-only E2E tests
 
 The `e2e` package talks to the live shop and is excluded from normal test runs
-by the `e2e` build tag. It only performs `GET` requests against catalog and
-account endpoints; it never changes the cart, places orders, or writes shop
-data.
+by the `e2e` build tag. It performs only `GET` requests against catalog and
+account endpoints, apart from the optional login and logout described below;
+it never changes the cart, places orders, or writes shop data.
 
 1. Copy the example environment file:
 

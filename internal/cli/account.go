@@ -115,7 +115,7 @@ func newCustomerCmd(app *App) *cobra.Command {
 }
 
 func (a *App) readLine(prompt string) (string, error) {
-	if _, err := fmt.Fprint(a.opts.Out, prompt); err != nil {
+	if _, err := fmt.Fprint(a.opts.Err, prompt); err != nil {
 		return "", err
 	}
 
@@ -128,11 +128,11 @@ func (a *App) readLine(prompt string) (string, error) {
 
 func (a *App) readPassword() (string, error) {
 	if file, ok := a.opts.In.(*os.File); ok && term.IsTerminal(int(file.Fd())) {
-		if _, err := fmt.Fprint(a.opts.Out, "Password: "); err != nil {
+		if _, err := fmt.Fprint(a.opts.Err, "Password: "); err != nil {
 			return "", err
 		}
 		password, err := term.ReadPassword(int(file.Fd()))
-		_, _ = fmt.Fprintln(a.opts.Out)
+		_, _ = fmt.Fprintln(a.opts.Err)
 		if err != nil {
 			return "", err
 		}

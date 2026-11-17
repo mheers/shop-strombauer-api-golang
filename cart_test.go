@@ -110,6 +110,28 @@ func TestUpdateCartItem(t *testing.T) {
 	}
 }
 
+func TestUpdateCartItemRejectsNonPositiveQuantity(t *testing.T) {
+	client := newTestClient(t, "http://127.0.0.1:1")
+
+	for _, quantity := range []int{0, -1} {
+		if _, err := client.UpdateCartItem(context.Background(), "line-1", quantity); !errors.Is(err, ErrInvalidQuantity) {
+			t.Errorf("quantity %d: error = %v, want ErrInvalidQuantity", quantity, err)
+		}
+	}
+}
+
+func TestAddToCartRejectsExplicitNonPositiveQuantity(t *testing.T) {
+	client := newTestClient(t, "http://127.0.0.1:1")
+	quantity := 0
+
+	if _, err := client.AddToCart(context.Background(), api.CartProductLineItem{
+		ProductId: "p1",
+		Quantity:  &quantity,
+	}); !errors.Is(err, ErrInvalidQuantity) {
+		t.Fatalf("error = %v, want ErrInvalidQuantity", err)
+	}
+}
+
 func TestRemoveCartItem(t *testing.T) {
 	var gotMethod, gotPath string
 

@@ -27,6 +27,18 @@ func TestNewRejectsInvalidBaseURL(t *testing.T) {
 	}
 }
 
+func TestNewRejectsBaseURLPartsThatBreakRequestBuilding(t *testing.T) {
+	for _, rawURL := range []string{
+		"https://shop.example.com?tenant=1",
+		"https://shop.example.com/#fragment",
+		"https://user:secret@shop.example.com",
+	} {
+		if _, err := New("key", WithBaseURL(rawURL)); err == nil {
+			t.Errorf("New accepted base URL %q", rawURL)
+		}
+	}
+}
+
 func TestNewNormalizesBaseURL(t *testing.T) {
 	client, err := New("key", WithBaseURL("  https://shop.example.com/  "))
 	if err != nil {

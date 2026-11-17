@@ -1716,16 +1716,7 @@ type CmsSlotApiAlias string
 type CompactCart struct {
 	// Available Choices per checkout field. Every field has `required` and `type`. Fields with a choice list it under `options`: shipping and payment methods with `id`, `name` and `description`, shipping options with `id`, `name` and `description` (hint for the option, `null` if none is set), partial delivery with `id` and `name` (`partialDelivery` lists `partial` and is `required` only while a product of the cart is out of stock; otherwise only `complete` is listed and `required` is `false`), shipping addresses with `id`, `default`, the address fields and `type` (`billing` for the billing address, `shipping` for every other address, like in `GET /store-api/v1/account/customer`). The billing address can be selected as shipping address, but it cannot be changed or deleted. `shippingAddressId.options` only contains the addresses the selected shipping method delivers to, e.g. for local delivery only the addresses within its delivery area; the other addresses can be selected with another shipping method. `termsAccepted` has the type `boolean`: send `termsAccepted: true` with `POST /store-api/v1/checkout/order`. `shippingMethodId.options` and `paymentMethodId.options` only contain the methods available for the current cart and customer; payment methods also depend on the selected shipping method. Both lists start with the default method of the shop, followed by the other methods in a fixed order. They are recalculated with every cart response and may be empty. Only fields that apply to the selected shipping method are listed: for pickup there is no `shippingAddressId`, and `selected.shippingAddress` is `null`. `shippingOptionId` is only listed, and then required, when the shipping method has at least two options; a single option applies without a choice and is reported in `selected.shippingOptionId`. `shippingAddOns` (type `booleanMap`, never required) lists the optional services of the selected shipping option (e.g. forklift, phone notice) in display order, with `id`, `name`, `description` (`null` if none is set), `price` (net amount in EUR, `null` if there is no price) and `defaultValue`; it is left out when the option offers none. Set a value with `POST /store-api/v1/checkout/set-shipping-add-on`. Show only the fields contained in `available`.
 	Available map[string]interface{} `json:"available"`
-	Items     []struct {
-		// ListPrice Net list price of the position (price for all customers at quantity 1), to show struck through next to `price`. Set only when `price.unit` is below `listPrice.unit`. `null` for sets and bundles, for articles without a price for all customers, for guests and customers who cannot see prices, when the cart shows gross prices and when the customer's price is not lower.
-		ListPrice *struct {
-			// Total `unit` × `quantity`, rounded to two decimals.
-			Total float32 `json:"total"`
-
-			// Unit List price of one unit.
-			Unit float32 `json:"unit"`
-		} `json:"listPrice"`
-	} `json:"items"`
+	Items     []CompactCartLineItem  `json:"items"`
 
 	// Notices Messages about the last cart change. A message without `productId` is shown once per context; notices with `productId` come with every rejection or change, also repeated ones. Show `message` to the customer and decide by `code`, never by the wording of `message`.
 	//
@@ -1791,6 +1782,56 @@ type CompactCartNoticesLevel int
 
 // CompactCartTotalsTaxExemptionCode defines model for CompactCart.Totals.TaxExemption.Code.
 type CompactCartTotalsTaxExemptionCode string
+
+// CompactCartLineItem defines model for CompactCartLineItem.
+type CompactCartLineItem struct {
+	// AvailableStock Available stock of the line item; `null` for guests and customers that are not unlocked for orders.
+	AvailableStock *int `json:"availableStock"`
+
+	// Id Line-item ID. Pass it to `PATCH` or `DELETE /store-api/v1/checkout/cart/line-item/{id}`.
+	Id string `json:"id"`
+
+	// Image Absolute product cover image URL without query parameters.
+	Image *string `json:"image"`
+
+	// ListPrice Net list price of the position (price for all customers at quantity 1), to show struck through next to `price`. Set only when `price.unit` is below `listPrice.unit`. `null` for sets and bundles, for articles without a price for all customers, for guests and customers who cannot see prices, when the cart shows gross prices and when the customer's price is not lower.
+	ListPrice *struct {
+		// Total `unit` × `quantity`, rounded to two decimals.
+		Total float32 `json:"total"`
+
+		// Unit List price of one unit.
+		Unit float32 `json:"unit"`
+	} `json:"listPrice"`
+
+	// MeasureUnit Measure unit of the line item; `null` when the product has no unit.
+	MeasureUnit *struct {
+		Code            string  `json:"code"`
+		Label           *string `json:"label"`
+		Name            *string `json:"name"`
+		QuantityPerUnit int     `json:"quantityPerUnit"`
+	} `json:"measureUnit"`
+
+	// Name Product name.
+	Name *string `json:"name"`
+
+	// Price Price of the line item: `unit` is the price of one unit, `total` is `unit` × `quantity`.
+	Price *struct {
+		Total float32 `json:"total"`
+		Unit  float32 `json:"unit"`
+	} `json:"price"`
+
+	// ProductId Shopware product ID.
+	ProductId string `json:"productId"`
+
+	// ProductNumber Product number of the line item.
+	ProductNumber string `json:"productNumber"`
+
+	// Quantity Quantity of the line item.
+	Quantity int `json:"quantity"`
+
+	// StockForecast Forecast of the available quantity as map `{ "YYYY-MM-DD": quantity }`; `null` for guests and customers that are not unlocked for orders.
+	StockForecast *map[string]float32 `json:"stockForecast"`
+}
 
 // Country defines model for Country.
 type Country struct {
