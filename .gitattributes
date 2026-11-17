@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+# The SDK is generated; collapse it in diffs.
+api/api.gen.go linguist-generated=true
+
+# Vendored upstream OpenAPI document.
+spec/openapi.json linguist-vendored=true
