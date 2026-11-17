@@ -201,6 +201,9 @@ func execute(t *testing.T, opts Options, args ...string) (string, string, error)
 	if opts.In == nil {
 		opts.In = strings.NewReader("")
 	}
+	if opts.Getenv == nil {
+		opts.Getenv = func(string) string { return "" }
+	}
 
 	cmd := NewRootCmd(opts)
 	cmd.SetArgs(args)
