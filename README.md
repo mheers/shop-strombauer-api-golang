@@ -367,8 +367,8 @@ effective values with the secrets masked.
 make generate
 ```
 
-The command runs `internal/specfix` first. The published document contains a
-few constructs that are valid JSON Schema but not valid OpenAPI 3.0, and one
+The command runs `internal/specfix` first. The published document contains
+constructs that `oapi-codegen` cannot turn into a usable SDK, and one
 incomplete schema. `specfix` fixes them deterministically:
 
 - `$ref` values that point below a component schema are hoisted into top-level

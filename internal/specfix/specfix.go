@@ -1,8 +1,8 @@
 // Package specfix normalizes the vendored Strombauer OpenAPI document so that
 // it can be consumed by oapi-codegen and produces a complete SDK.
 //
-// The published document contains constructs that are valid JSON Schema but
-// not valid OpenAPI 3.0, and schemas that are incomplete:
+// The published document contains constructs that oapi-codegen cannot consume
+// directly, and schemas that are incomplete:
 //
 //   - $ref values that point below a component schema (for example
 //     #/components/schemas/Product/properties/type). Those targets are hoisted
