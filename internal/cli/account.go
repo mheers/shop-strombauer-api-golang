@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -117,8 +116,7 @@ func (a *App) readLine(prompt string) (string, error) {
 		return "", err
 	}
 
-	reader := bufio.NewReader(a.opts.In)
-	line, err := reader.ReadString('\n')
+	line, err := a.inputReader().ReadString('\n')
 	if err != nil && !errors.Is(err, io.EOF) {
 		return "", err
 	}

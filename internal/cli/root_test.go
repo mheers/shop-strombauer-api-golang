@@ -89,6 +89,33 @@ func TestLoginStoresContextToken(t *testing.T) {
 	}
 }
 
+func TestLoginReadsCredentialsFromStdin(t *testing.T) {
+	var loginBody map[string]string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&loginBody); err != nil {
+			t.Errorf("decode login body: %v", err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("sw-context-token", "session-token")
+		_, _ = io.WriteString(w, `{}`)
+	}))
+	defer server.Close()
+
+	configPath := writeConfig(t, &Config{BaseURL: server.URL, AccessKey: "test-key"})
+
+	_, _, err := execute(t, Options{
+		ConfigPath: configPath,
+		In:         strings.NewReader("max@example.com\nsecret\n"),
+	}, "login")
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if loginBody["username"] != "max@example.com" || loginBody["password"] != "secret" {
+		t.Fatalf("login body = %#v", loginBody)
+	}
+}
+
 func TestSuccessfulCommandPersistsRotatedToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

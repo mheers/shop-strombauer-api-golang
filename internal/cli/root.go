@@ -3,6 +3,7 @@
 package cli
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,6 +39,7 @@ type App struct {
 
 	config    *Config
 	apiClient *strombauer.Client
+	input     *bufio.Reader
 }
 
 // NewRootCmd builds the cobra command tree.
@@ -104,6 +106,13 @@ file and sent automatically afterwards.`,
 	)
 
 	return root
+}
+
+func (a *App) inputReader() *bufio.Reader {
+	if a.input == nil {
+		a.input = bufio.NewReader(a.opts.In)
+	}
+	return a.input
 }
 
 func (a *App) getenv(key string) string {
