@@ -1,0 +1,11 @@
+# Build output
+/bin/
+
+# Intermediate OpenAPI document produced by `make generate`
+/spec/openapi.normalized.json
+
+# Editor and OS files
+.DS_Store
+*.swp
+.idea/
+.vscode/

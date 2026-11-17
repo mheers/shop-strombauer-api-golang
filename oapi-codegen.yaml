@@ -1,0 +1,7 @@
+# oapi-codegen configuration for the generated SDK in ./api.
+# Regenerate with: make generate
+package: api
+output: api/api.gen.go
+generate:
+  models: true
+  client: true
