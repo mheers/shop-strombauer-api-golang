@@ -262,6 +262,8 @@ allow them.
    call `POST /store-api/v1/search-log/click/{searchLogId}`.
 
 Searches without `source` are not recorded and return `searchLogId: null`.
+The CLI's `strombauer search` sends `source=results` by default; pass
+`--source ''` for an unrecorded search, for example during read-only checks.
 
 ## Error handling
 

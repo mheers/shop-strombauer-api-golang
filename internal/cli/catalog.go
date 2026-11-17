@@ -174,7 +174,7 @@ func newSearchCmd(app *App) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&source, "source", "results", "where the search was typed: results or suggest")
+	flags.StringVar(&source, "source", "results", "where the search was typed: results or suggest (empty to avoid recording)")
 	flags.IntVar(&page, "page", 0, "page number, starting at 1")
 	flags.IntVar(&limit, "limit", 0, "products per page")
 	return cmd
