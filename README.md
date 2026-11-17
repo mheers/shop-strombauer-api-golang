@@ -17,6 +17,7 @@ generated Go types and client.
 ## Contents
 
 - [Features](#features)
+- [Shop technology](#shop-technology)
 - [Install](#install)
 - [Library quick start](#library-quick-start)
 - [Authentication and sessions](#authentication-and-sessions)
@@ -42,6 +43,27 @@ generated Go types and client.
 - Cobra CLI with table output, `--json` output, a `0600` config file and
   environment-variable support.
 - Unit tests use `httptest`; no live shop account is required.
+
+## Shop technology
+
+The shop behind this API is a headless **Shopware 6** installation:
+
+- **Commerce backend:** Shopware 6's Store API under `/store-api/v1/`. The
+  standard `sw-access-key`, `sw-context-token`, `sw-language-id` and
+  `sw-currency-id` headers, the DAL schemas (`dal_entity_search_result`,
+  `CmsSlot`, `Theme`, `OrderLineItem`) and the `CHECKOUT__…` /
+  `FRAMEWORK__…` error codes identify it. The Strombauer-specific routes are
+  custom endpoints on top of Shopware.
+- **Storefront:** a separate **Next.js** application (App Router with
+  Turbopack), not the classic Shopware Twig storefront. Cloudflare is in front
+  of the site.
+- **ERP:** **Microsoft Dynamics 365 Business Central**. Order comments,
+  references and shipping notices are sent to Business Central; order
+  documents, invoices and delivery statuses come back from it.
+
+These details come from the public API responses, the storefront and the API
+documentation. The exact Shopware 6 minor version is not exposed by the API,
+so this project does not pin one.
 
 ## Install
 
