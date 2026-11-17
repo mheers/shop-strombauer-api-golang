@@ -393,11 +393,51 @@ spec/openapi.json    vendored OpenAPI 3.0 document
 oapi-codegen.yaml    generator configuration
 ```
 
+## Read-only E2E tests
+
+The `e2e` package talks to the live shop and is excluded from normal test runs
+by the `e2e` build tag. It only performs `GET` requests against catalog and
+account endpoints; it never changes the cart, places orders, or writes shop
+data.
+
+1. Copy the example environment file:
+
+   ```sh
+   cp .env.example .env
+   ```
+
+2. Fill in `.env`. `STROMBAUER_ACCESS_KEY` is the only required value:
+
+   | Variable | Required | Used for |
+   |---|---|---|
+   | `STROMBAUER_ACCESS_KEY` | yes | `sw-access-key`; identifies the sales channel |
+   | `STROMBAUER_BASE_URL` | no | shop base URL; defaults to `https://shop.strombauer.com` |
+   | `STROMBAUER_CONTEXT_TOKEN` | no | existing session for strictly read-only account tests; the tests never log in or out when it is set |
+   | `STROMBAUER_USERNAME` | no | shop account e-mail; used only when no context token is set |
+   | `STROMBAUER_PASSWORD` | no | shop account password; used only when no context token is set |
+
+3. Run the tests:
+
+   ```sh
+   make test-e2e
+   ```
+
+`make test-e2e` loads `.env` automatically. Without `STROMBAUER_ACCESS_KEY` the
+tests skip instead of failing. For strictly read-only authenticated checks, set
+`STROMBAUER_CONTEXT_TOKEN` and leave the username/password empty. If you use
+the username/password instead, the test logs in, runs the reads, and logs out;
+those two calls only create and destroy a session.
+
+The `.env` file is gitignored. The CLI reads the same
+`STROMBAUER_ACCESS_KEY`, `STROMBAUER_CONTEXT_TOKEN` and `STROMBAUER_BASE_URL`
+variables; use `strombauer login` for the CLI login.
+
 ## Development
 
 ```sh
 make test        # unit tests
 make test-race   # unit tests with the race detector
+make test-e2e    # read-only E2E tests against the live shop
 make vet         # go vet
 make fmt-check   # gofmt check
 make build       # build ./bin/strombauer

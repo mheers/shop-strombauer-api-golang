@@ -4,6 +4,11 @@
 # Intermediate OpenAPI document produced by `make generate`
 /spec/openapi.normalized.json
 
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
 # Editor and OS files
 .DS_Store
 *.swp

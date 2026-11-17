@@ -2,7 +2,7 @@ GO ?= go
 SPEC ?= spec/openapi.json
 NORMALIZED ?= spec/openapi.normalized.json
 
-.PHONY: all generate test test-race vet fmt-check build clean
+.PHONY: all generate test test-race test-e2e vet fmt-check build clean
 
 all: generate test build
 
@@ -19,6 +19,12 @@ test:
 ## test-race: run all unit tests with the race detector.
 test-race:
 	$(GO) test -race ./...
+
+## test-e2e: run read-only end-to-end tests against the live shop.
+## Loads .env when it exists; see .env.example.
+test-e2e:
+	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
+	$(GO) test -tags=e2e -count=1 -v ./e2e
 
 ## vet: run go vet.
 vet:
