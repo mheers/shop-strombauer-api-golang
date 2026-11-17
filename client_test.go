@@ -27,6 +27,16 @@ func TestNewRejectsInvalidBaseURL(t *testing.T) {
 	}
 }
 
+func TestNewNormalizesBaseURL(t *testing.T) {
+	client, err := New("key", WithBaseURL("  https://shop.example.com/  "))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if got := client.BaseURL(); got != "https://shop.example.com" {
+		t.Fatalf("BaseURL = %q, want https://shop.example.com", got)
+	}
+}
+
 func TestClientSendsAuthenticationHeaders(t *testing.T) {
 	var gotAccessKey, gotContextToken, gotUserAgent, gotPath string
 

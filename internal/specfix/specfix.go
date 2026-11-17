@@ -76,31 +76,29 @@ func Normalize(src []byte) ([]byte, error) {
 	// Response components with inline enum properties make oapi-codegen emit
 	// field types whose declarations are missing. Hoisting the schema into
 	// components.schemas fixes the generated type declarations.
-	for _, name := range []string{"ProductListResponse", "ProductSearchResponse"} {
-		responses, err := objectAt(components, "/responses")
-		if err != nil {
-			return nil, fmt.Errorf("specfix: %w", err)
+	if responses, err := objectAt(components, "/responses"); err == nil {
+		for _, name := range []string{"ProductListResponse", "ProductSearchResponse"} {
+			response, err := objectAt(responses, "/"+name)
+			if err != nil {
+				continue
+			}
+			content, err := objectAt(response, "/content")
+			if err != nil {
+				continue
+			}
+			media, err := objectAt(content, "/application~1json")
+			if err != nil {
+				continue
+			}
+			schema, ok := media["schema"].(map[string]any)
+			if !ok {
+				continue
+			}
+			if _, exists := schemas[name]; !exists {
+				schemas[name] = schema
+			}
+			media["schema"] = map[string]any{"$ref": "#/components/schemas/" + name}
 		}
-		response, err := objectAt(responses, "/"+name)
-		if err != nil {
-			continue
-		}
-		content, err := objectAt(response, "/content")
-		if err != nil {
-			continue
-		}
-		media, err := objectAt(content, "/application~1json")
-		if err != nil {
-			continue
-		}
-		schema, ok := media["schema"].(map[string]any)
-		if !ok {
-			continue
-		}
-		if _, exists := schemas[name]; !exists {
-			schemas[name] = schema
-		}
-		media["schema"] = map[string]any{"$ref": "#/components/schemas/" + name}
 	}
 
 	if err := removeCaseOnlyDuplicateProperties(doc); err != nil {

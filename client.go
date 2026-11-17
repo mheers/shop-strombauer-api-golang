@@ -102,7 +102,7 @@ func WithBaseURL(rawURL string) Option {
 		if parsed.Host == "" {
 			return errors.New("strombauer: base URL has no host")
 		}
-		c.baseURL = rawURL
+		c.baseURL = strings.TrimSpace(rawURL)
 		return nil
 	}
 }
