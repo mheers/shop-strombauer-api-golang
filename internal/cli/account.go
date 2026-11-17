@@ -29,6 +29,9 @@ the returned sw-context-token in the config file.`,
 					return err
 				}
 			}
+			if strings.TrimSpace(username) == "" {
+				return errors.New("strombauer: username is required")
+			}
 			if password == "" {
 				password, err = app.readPassword()
 				if err != nil {
